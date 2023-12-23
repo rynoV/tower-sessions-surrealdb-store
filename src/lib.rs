@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 use surrealdb::Surreal;
 use tower_sessions_core::{
     session::{Id, Record},
-    Error, ExpiredDeletion, Result, SessionStore,
+    session_store::{Error, Result},
+    ExpiredDeletion, SessionStore,
 };
 use tracing::info;
 
@@ -118,12 +119,9 @@ where expiry_date > time::unix(time::now())",
 
 #[cfg(test)]
 mod test {
-    use std::sync::Arc;
+    use std::collections::HashMap;
 
-    use tower_sessions_core::{
-        cookie::time::{Duration, OffsetDateTime},
-        Expiry, Session,
-    };
+    use tower_sessions_core::cookie::time::{Duration, OffsetDateTime};
 
     use super::*;
 
@@ -145,35 +143,36 @@ mod test {
     }
 
     #[tokio::test]
-    async fn delete_expired() {
+    async fn basic_roundtrip() {
         let db = new_db_connection().await;
-        let store = Arc::new(SurrealSessionStore::new(
+        let store = SurrealSessionStore::new(
             db.clone(),
             SESSIONS_TABLE.to_string(),
-        ));
-        let expiry = OffsetDateTime::now_utc();
-        let expired = Session::new(None, store.clone(), Some(Expiry::AtDateTime(expiry)));
-        let expired2 = Session::new(
-            None,
-            store.clone(),
-            Some(Expiry::AtDateTime(
-                expiry
-                    .checked_sub(Duration::days(1))
-                    .expect("Overflow while making expiry datetime"),
-            )),
         );
-        let not_expired = Session::new(None, store.clone(), Some(Expiry::OnSessionEnd));
-        let not_expired2 = Session::new(None, store.clone(), None);
+        let record = make_record(None, [("key", "value")].to_vec(), Duration::days(1));
+        store.save(&record).await.expect("Error saving");
+        let loaded = store
+            .load(&record.id)
+            .await
+            .expect("Error loading")
+            .expect("Value missing");
+        assert_eq!(record, loaded, "Loaded value should equal original");
+    }
+
+    #[tokio::test]
+    async fn delete_expired() {
+        let db = new_db_connection().await;
+        let store = SurrealSessionStore::new(db.clone(), SESSIONS_TABLE.to_string());
+        let expired = make_record(None, [].to_vec(), Duration::ZERO);
+        let expired2 = make_record(None, [("key", "value")].to_vec(), Duration::days(-1));
+        let not_expired = make_record(None, [].to_vec(), Duration::days(1));
+        let not_expired2 = make_record(None, [("key", "value")].to_vec(), Duration::minutes(1));
 
         for session in [&expired, &expired2, &not_expired, &not_expired2] {
             save_session(&store, &session).await;
-            let expected = make_session_record(&session).await;
-            let loaded = select_session(&db, &session)
+            select_session(&db, &session)
                 .await
-                .expect("No session record");
-            // We're okay to use PartialEq here, since we just want to
-            // check that they're in the database
-            assert_eq!(expected, loaded, "Session should be in the database");
+                .expect("Session should be in the database");
         }
 
         store
@@ -182,34 +181,31 @@ mod test {
             .expect("Error deleting expired");
 
         for not_expired in [&not_expired, &not_expired2] {
-            let loaded = select_session(&db, &not_expired)
+            select_session(&db, &not_expired)
                 .await
-                .expect("No session record");
-            let expected = make_session_record(&not_expired).await;
-            assert_eq!(
-                expected, loaded,
-                "Not-expired session should be in the database"
-            );
+                .expect("Not-expired session should be in the database");
+
             let loaded = load_session(&store, &not_expired)
                 .await
-                .expect("No session");
-            assert_serialized_eq(
-                get_record(&not_expired).await,
-                loaded,
+                .expect("No session loaded");
+
+            assert_eq!(
+                not_expired, &loaded,
                 "Not-expired session should be loaded from the store",
             );
         }
 
         for expired in [&expired, &expired2] {
             let loaded = select_session(&db, &expired).await;
-            assert_eq!(
-                None, loaded,
+            assert!(
+                loaded.is_none(),
                 "Expired session should not be in the database"
             );
+
             let loaded = load_session(&store, &expired).await;
-            assert_serialized_eq(
-                None,
-                loaded,
+
+            assert!(
+                loaded.is_none(),
                 "Expired session should not be loaded from the store",
             );
         }
@@ -229,19 +225,11 @@ mod test {
     #[tokio::test]
     async fn load_expired() {
         let db = new_db_connection().await;
-        let store = Arc::new(SurrealSessionStore::new(
+        let store = SurrealSessionStore::new(
             db.clone(),
             SESSIONS_TABLE.to_string(),
-        ));
-        let session = Session::new(
-            None,
-            store.clone(),
-            Some(Expiry::AtDateTime(OffsetDateTime::now_utc())),
         );
-        session
-            .insert("some key", "some value")
-            .await
-            .expect("Error inserting into session");
+        let session = make_record(None, [("some key", "some value")].to_vec(), Duration::ZERO);
         save_session(&store, &session).await;
         let loaded = load_session(&store, &session).await;
         assert_serialized_eq(None, loaded, "Expired session should not be loaded");
@@ -250,22 +238,17 @@ mod test {
     #[tokio::test]
     async fn save_load_update_delete() {
         let db = new_db_connection().await;
-        let store = Arc::new(SurrealSessionStore::new(
+        let store = SurrealSessionStore::new(
             db.clone(),
             SESSIONS_TABLE.to_string(),
-        ));
-        let session = Session::new(
+        );
+        let session = make_record(
             None,
-            store.clone(),
-            Some(Expiry::OnInactivity(Duration::hours(1))),
+            [("some key", "some value")].to_vec(),
+            Duration::hours(1),
         );
 
         // | Initial save and load |
-        session
-            .insert("some key", "some value")
-            .await
-            .expect("Error inserting into session");
-
         save_session(&store, &session).await;
 
         let record = select_session(&db, &session)
@@ -276,23 +259,15 @@ mod test {
         assert_eq!(expected, record, "Record in database");
 
         let loaded = load_session(&store, &session).await.expect("No session");
-        // To check that the session is correct we compare the
-        // serialized value, because the Session PartialEq
-        // implementation only compares the session ids
-        assert_serialized_eq(
-            get_record(&session).await,
-            loaded,
-            "Loaded session",
-        );
+        assert_eq!(session, loaded, "Loaded session");
 
         // | Update |
-
-        // Simulate updating the session by making a new session with
-        // the same id
-        session
-            .insert("some new key", "some new value")
-            .await
-            .expect("Error inserting into session");
+        let mut new_data = session.data.clone();
+        new_data.insert("some new key".to_string(), to_value("some new value"));
+        let session = Record {
+            data: new_data,
+            ..session
+        };
 
         save_session(&store, &session).await;
 
@@ -304,55 +279,52 @@ mod test {
         assert_eq!(expected, record, "Record in database after update");
 
         let loaded = load_session(&store, &session).await.expect("No session");
-        assert_serialized_eq(
-            get_record(&session).await,
-            loaded,
-            "Loaded session after update",
-        );
+        assert_eq!(session, loaded, "Loaded session after update",);
 
         // | Delete |
         store
-            .delete(&get_record(&session).await.id)
+            .delete(&session.id)
             .await
             .expect("Error deleting session");
 
         let record = select_session(&db, &session).await;
-        assert_eq!(None, record, "Deleted session record in database");
+        assert!(record.is_none(), "Deleted session record in database");
 
         let loaded = load_session(&store, &session).await;
-        assert_serialized_eq(None, loaded, "Deleted session");
+        assert!(loaded.is_none(), "Deleted session");
     }
 
-    async fn get_record(session: &Session) -> Record {
-        session
-            .get_record()
-            .await
-            .expect("Error getting session record")
-            .as_ref()
-            .expect("Session record was None")
-            .to_owned()
+    fn make_record(id: Option<Id>, values: Vec<(&str, &str)>, date_offset: Duration) -> Record {
+        Record {
+            id: id.unwrap_or_default(),
+            data: HashMap::from_iter(values.iter().map(|(k, v)| (k.to_string(), to_value(v)))),
+            expiry_date: OffsetDateTime::now_utc()
+                .checked_add(date_offset)
+                .expect("Overflow making expiry"),
+        }
     }
 
-    async fn make_session_record(session: &Session) -> SessionRecord {
-        SessionRecord::from_session(&get_record(session).await).expect("Error encoding session")
+    fn to_value(v: &str) -> serde_json::Value {
+        serde_json::to_value(v).expect("Error encoding")
     }
 
-    async fn save_session(store: &SurrealSessionStore<DB>, session: &Session) {
+    async fn make_session_record(session: &Record) -> SessionRecord {
+        SessionRecord::from_session(&session).expect("Error deserializing")
+    }
+
+    async fn save_session(store: &SurrealSessionStore<DB>, session: &Record) {
+        store.save(session).await.expect("Error saving session")
+    }
+
+    async fn load_session(store: &SurrealSessionStore<DB>, session: &Record) -> Option<Record> {
         store
-            .save(&get_record(session).await)
-            .await
-            .expect("Error saving session")
-    }
-
-    async fn load_session(store: &SurrealSessionStore<DB>, session: &Session) -> Option<Record> {
-        store
-            .load(&get_record(session).await.id)
+            .load(&session.id)
             .await
             .expect("Error loading session")
     }
 
-    async fn select_session(db: &Surreal<DB>, session: &Session) -> Option<SessionRecord> {
-        db.select((SESSIONS_TABLE, get_record(session).await.id.to_string()))
+    async fn select_session(db: &Surreal<DB>, session: &Record) -> Option<SessionRecord> {
+        db.select((SESSIONS_TABLE, session.id.to_string()))
             .await
             .expect("Error retrieving session record")
     }

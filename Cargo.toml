@@ -21,7 +21,7 @@ surrealdb = { version = "1.0.2", optional = true }
 surrealdb-nightly = { version = "1.20231219.1034735", optional = true }
 thiserror = "1.0.51"
 # Fix once resolved with tower-sessions maintainers
-tower-sessions-core = { path = "../tower-sessions/tower-sessions-core" }
+tower-sessions-core = { git = "https://github.com/rynoV/tower-sessions" }
 tracing = "0.1.40"
 
 [features]
@@ -38,7 +38,7 @@ tokio = "1.35.1"
 tokio-test = "0.4.3"
 tower = "0.4.13"
 # Fix once resolved with tower-sessions maintainers
-tower-sessions = { path = "../tower-sessions/", features = ["deletion-task"] }
+tower-sessions = { git = "https://github.com/rynoV/tower-sessions", features = ["deletion-task"] }
 
 [[example]]
 name = "counter"
