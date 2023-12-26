@@ -145,10 +145,7 @@ mod test {
     #[tokio::test]
     async fn basic_roundtrip() {
         let db = new_db_connection().await;
-        let store = SurrealSessionStore::new(
-            db.clone(),
-            SESSIONS_TABLE.to_string(),
-        );
+        let store = SurrealSessionStore::new(db.clone(), SESSIONS_TABLE.to_string());
         let record = make_record(None, [("key", "value")].to_vec(), Duration::days(1));
         store.save(&record).await.expect("Error saving");
         let loaded = store
@@ -225,10 +222,7 @@ mod test {
     #[tokio::test]
     async fn load_expired() {
         let db = new_db_connection().await;
-        let store = SurrealSessionStore::new(
-            db.clone(),
-            SESSIONS_TABLE.to_string(),
-        );
+        let store = SurrealSessionStore::new(db.clone(), SESSIONS_TABLE.to_string());
         let session = make_record(None, [("some key", "some value")].to_vec(), Duration::ZERO);
         save_session(&store, &session).await;
         let loaded = load_session(&store, &session).await;
@@ -238,10 +232,7 @@ mod test {
     #[tokio::test]
     async fn save_load_update_delete() {
         let db = new_db_connection().await;
-        let store = SurrealSessionStore::new(
-            db.clone(),
-            SESSIONS_TABLE.to_string(),
-        );
+        let store = SurrealSessionStore::new(db.clone(), SESSIONS_TABLE.to_string());
         let session = make_record(
             None,
             [("some key", "some value")].to_vec(),
