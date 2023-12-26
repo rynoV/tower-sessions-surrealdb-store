@@ -69,23 +69,11 @@ impl<DB: std::fmt::Debug + surrealdb::Connection> ExpiredDeletion for SurrealSes
 #[async_trait]
 impl<DB: std::fmt::Debug + surrealdb::Connection> SessionStore for SurrealSessionStore<DB> {
     async fn save(&self, session: &Record) -> Result<()> {
-        // For some reason surreal errors when I try to use a
-        // variable `$table` or `type::table($table)` instead of
-        // inserting the table name like this. It shouldn't be an
-        // SQL injection risk though, because the session table
-        // shouldn't be decided based on user input.
-        self.client
-            .query(format!(
-                "insert into {} (id, data, expiry_date)
-values ($id, $data, $expiry_date)
-on duplicate key update data = $data, expiry_date = $expiry_date",
-                self.session_table
-            ))
-            .bind(("id", session.id.to_string()))
-            .bind(SessionRecord::from_session(session)?)
+        let _: Option<SessionRecord> = self
+            .client
+            .update((self.session_table.clone(), session.id.to_string()))
+            .content(SessionRecord::from_session(session)?)
             .await
-            .map_err(|e| Error::Backend(e.to_string()))?
-            .check()
             .map_err(|e| Error::Backend(e.to_string()))?;
 
         Ok(())
