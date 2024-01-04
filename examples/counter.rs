@@ -5,10 +5,7 @@
 //! 10 seconds of inactivity the counter should reset.
 use std::net::SocketAddr;
 
-use axum::http::StatusCode;
-use axum::{
-    error_handling::HandleErrorLayer, response::IntoResponse, routing::get, BoxError, Router,
-};
+use axum::{response::IntoResponse, routing::get, Router};
 use serde::{Deserialize, Serialize};
 use tower::ServiceBuilder;
 use tower_sessions::{cookie::time::Duration, Expiry, Session, SessionManagerLayer};
@@ -39,15 +36,11 @@ async fn main() {
         tokio::time::Duration::from_secs(60 * expired_session_cleanup_interval),
     ));
 
-    let session_service = ServiceBuilder::new()
-        .layer(HandleErrorLayer::new(|_: BoxError| async {
-            StatusCode::BAD_REQUEST
-        }))
-        .layer(
-            SessionManagerLayer::new(session_store)
-                .with_secure(false)
-                .with_expiry(Expiry::OnInactivity(Duration::seconds(10))),
-        );
+    let session_service = ServiceBuilder::new().layer(
+        SessionManagerLayer::new(session_store)
+            .with_secure(false)
+            .with_expiry(Expiry::OnInactivity(Duration::seconds(10))),
+    );
 
     let app = Router::new()
         .route("/", get(handler))
