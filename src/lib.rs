@@ -109,7 +109,7 @@ where expiry_date > time::unix(time::now())",
 mod test {
     use std::collections::HashMap;
 
-    use tower_sessions_core::cookie::time::{Duration, OffsetDateTime};
+    use tower_sessions::cookie::time::{Duration, OffsetDateTime};
 
     use super::*;
 

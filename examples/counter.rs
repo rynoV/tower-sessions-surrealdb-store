@@ -8,8 +8,9 @@ use std::net::SocketAddr;
 use axum::{response::IntoResponse, routing::get, Router};
 use serde::{Deserialize, Serialize};
 use tower::ServiceBuilder;
-use tower_sessions::{cookie::time::Duration, Expiry, Session, SessionManagerLayer};
-use tower_sessions_core::ExpiredDeletion as _;
+use tower_sessions::{
+    cookie::time::Duration, ExpiredDeletion, Expiry, Session, SessionManagerLayer,
+};
 use tower_sessions_surrealdb_store::SurrealSessionStore;
 
 const COUNTER_KEY: &str = "counter";
