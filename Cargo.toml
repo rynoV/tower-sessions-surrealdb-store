@@ -1,6 +1,6 @@
 [package]
 name = "tower-sessions-surrealdb-store"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 description = "SurrealDB session store. Not for direct use; see the `tower-sessions` crate for details."
 authors = ["Calum Sieppert <sieppertcalum@gmail.com>"]
@@ -20,7 +20,7 @@ serde = "1.0.193"
 surrealdb = { version = "1.0.2", optional = true }
 surrealdb-nightly = { version = "1.20231219.1034735", optional = true }
 thiserror = "1.0.51"
-tower-sessions-core = "0.9.0"
+tower-sessions-core = { version = "0.10.1", features = ["deletion-task"] }
 tracing = "0.1.40"
 
 [features]
@@ -36,7 +36,7 @@ surrealdb = { version = "1.0.2", features = ["kv-mem"] }
 tokio = "1.35.1"
 tokio-test = "0.4.3"
 tower = "0.4.13"
-tower-sessions = { version = "0.9.0", features = ["deletion-task"] }
+tower-sessions = "0.10.1"
 
 [[example]]
 name = "counter"
