@@ -68,6 +68,19 @@ impl<DB: std::fmt::Debug + surrealdb::Connection> ExpiredDeletion for SurrealSes
 
 #[async_trait]
 impl<DB: std::fmt::Debug + surrealdb::Connection> SessionStore for SurrealSessionStore<DB> {
+    async fn create(&self, session: &mut Record) -> Result<()> {
+        while self
+            .client
+            .select::<Option<SessionRecord>>((self.session_table.clone(), session.id.to_string()))
+            .await
+            .map_err(|e| Error::Backend(e.to_string()))?
+            .is_some()
+        {
+            session.id = Id::default();
+        }
+        self.save(session).await
+    }
+
     async fn save(&self, session: &Record) -> Result<()> {
         let _: Option<SessionRecord> = self
             .client
@@ -135,12 +148,8 @@ mod test {
         let db = new_db_connection().await;
         let store = SurrealSessionStore::new(db.clone(), SESSIONS_TABLE.to_string());
         let record = make_record(None, [("key", "value")].to_vec(), Duration::days(1));
-        store.save(&record).await.expect("Error saving");
-        let loaded = store
-            .load(&record.id)
-            .await
-            .expect("Error loading")
-            .expect("Value missing");
+        save_session(&store, &record).await;
+        let loaded = load_session(&store, &record).await.expect("Value missing");
         assert_eq!(record, loaded, "Loaded value should equal original");
     }
 
@@ -273,6 +282,32 @@ mod test {
         assert!(loaded.is_none(), "Deleted session");
     }
 
+    #[tokio::test]
+    async fn create_id() {
+        let db = new_db_connection().await;
+        let store = SurrealSessionStore::new(db.clone(), SESSIONS_TABLE.to_string());
+        let mut session = make_record(None, [].to_vec(), Duration::hours(1));
+        create_session(&store, &mut session).await;
+        let loaded = load_session(&store, &session).await;
+        assert_eq!(session, loaded.expect("No session"), "Loaded session");
+    }
+
+    #[tokio::test]
+    async fn create_duplicate_id() {
+        let db = new_db_connection().await;
+        let store = SurrealSessionStore::new(db.clone(), SESSIONS_TABLE.to_string());
+        let mut session = make_record(None, [].to_vec(), Duration::hours(1));
+        create_session(&store, &mut session).await;
+        let mut session2 = make_record(
+            Some(session.id),
+            [("key", "value")].to_vec(),
+            Duration::hours(2),
+        );
+        create_session(&store, &mut session2).await;
+        let loaded = load_session(&store, &session2).await.expect("No session");
+        assert_ne!(session.id, loaded.id, "Loaded session");
+    }
+
     fn make_record(id: Option<Id>, values: Vec<(&str, &str)>, date_offset: Duration) -> Record {
         Record {
             id: id.unwrap_or_default(),
@@ -293,6 +328,10 @@ mod test {
 
     async fn save_session(store: &SurrealSessionStore<DB>, session: &Record) {
         store.save(session).await.expect("Error saving session")
+    }
+
+    async fn create_session(store: &SurrealSessionStore<DB>, session: &mut Record) {
+        store.create(session).await.expect("Error creating session")
     }
 
     async fn load_session(store: &SurrealSessionStore<DB>, session: &Record) -> Option<Record> {
