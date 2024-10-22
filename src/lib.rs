@@ -8,6 +8,9 @@ use tower_sessions_core::{
 };
 use tracing::info;
 
+#[cfg(all(feature="surrealdb", feature="surrealdb-nightly"))]
+compile_error!{"Features 'surrealdb' and 'surrealdb-nightly' must not be enabled at the same time! See the README for details."}
+
 /// Representation of a session in the database.
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 struct SessionRecord {
