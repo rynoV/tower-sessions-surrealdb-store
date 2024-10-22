@@ -54,9 +54,10 @@ impl<DB: std::fmt::Debug + surrealdb::Connection> ExpiredDeletion for SurrealSes
     async fn delete_expired(&self) -> Result<()> {
         info!("Deleting expired sessions");
         self.client
-            .query(format!(
+            .query(
                 "delete type::table($table) where expiry_date <= time::unix(time::now())"
-            ))
+                    .to_string(),
+            )
             .bind(("table", self.session_table.clone()))
             .await
             .map_err(|e| Error::Backend(e.to_string()))?
@@ -164,8 +165,8 @@ mod test {
         let not_expired2 = make_record(None, [("key", "value")].to_vec(), Duration::minutes(1));
 
         for session in [&expired, &expired2, &not_expired, &not_expired2] {
-            save_session(&store, &session).await;
-            select_session(&db, &session)
+            save_session(&store, session).await;
+            select_session(&db, session)
                 .await
                 .expect("Session should be in the database");
         }
@@ -176,11 +177,11 @@ mod test {
             .expect("Error deleting expired");
 
         for not_expired in [&not_expired, &not_expired2] {
-            select_session(&db, &not_expired)
+            select_session(&db, not_expired)
                 .await
                 .expect("Not-expired session should be in the database");
 
-            let loaded = load_session(&store, &not_expired)
+            let loaded = load_session(&store, not_expired)
                 .await
                 .expect("No session loaded");
 
@@ -191,13 +192,13 @@ mod test {
         }
 
         for expired in [&expired, &expired2] {
-            let loaded = select_session(&db, &expired).await;
+            let loaded = select_session(&db, expired).await;
             assert!(
                 loaded.is_none(),
                 "Expired session should not be in the database"
             );
 
-            let loaded = load_session(&store, &expired).await;
+            let loaded = load_session(&store, expired).await;
 
             assert!(
                 loaded.is_none(),
@@ -324,7 +325,7 @@ mod test {
     }
 
     async fn make_session_record(session: &Record) -> SessionRecord {
-        SessionRecord::from_session(&session).expect("Error deserializing")
+        SessionRecord::from_session(session).expect("Error deserializing")
     }
 
     async fn save_session(store: &SurrealSessionStore<DB>, session: &Record) {
