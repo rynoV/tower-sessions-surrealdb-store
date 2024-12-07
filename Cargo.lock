@@ -3898,7 +3898,6 @@ dependencies = [
  "serde_json",
  "surrealdb",
  "surrealdb-nightly",
- "thiserror",
  "tokio",
  "tokio-test",
  "tower 0.5.1",
