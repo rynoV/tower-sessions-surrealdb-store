@@ -88,7 +88,7 @@ impl<DB: std::fmt::Debug + surrealdb::Connection> SessionStore for SurrealSessio
     async fn save(&self, session: &Record) -> Result<()> {
         let _: SessionRecord = self
             .client
-            .upsert((self.session_table.clone(), session.id.to_string()))
+            .update((self.session_table.clone(), session.id.to_string()))
             .content(SessionRecord::from_session(session)?)
             .await
             .map_err(|e| Error::Backend(e.to_string()))?
