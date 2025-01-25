@@ -4643,7 +4643,7 @@ dependencies = [
 
 [[package]]
 name = "tower-sessions-surrealdb-store"
-version = "0.5.1-surrealv1"
+version = "0.6.0-surrealv1"
 dependencies = [
  "async-trait",
  "axum",
