@@ -3365,9 +3365,9 @@ dependencies = [
 
 [[package]]
 name = "surrealdb-core-nightly"
-version = "2.0.20240916"
+version = "2.0.20240925"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9183d5819a754f0ae8a5147079beb5d3515f716fb87dc10aac393e40783ba229"
+checksum = "bf1e59773231833f1bebd4c76b8840d0b8a0d4d64780b5b2b55b9d075b6fce49"
 dependencies = [
  "addr",
  "ahash 0.8.11",
@@ -3457,9 +3457,9 @@ dependencies = [
 
 [[package]]
 name = "surrealdb-nightly"
-version = "2.0.20240916"
+version = "2.0.20240925"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efa827de1dcb81df9ccaa865d5ed1bd33e2cf21f2d7fc0db62e18c3cb84acd53"
+checksum = "7ae1c7c34b1472e81d2b25f469f2fdb8b9d6fbfff780482dea49002350fb251b"
 dependencies = [
  "arrayvec",
  "async-channel",
@@ -3486,6 +3486,7 @@ dependencies = [
  "thiserror 1.0.63",
  "tokio",
  "tokio-tungstenite",
+ "tokio-util",
  "tracing",
  "trice",
  "url",
