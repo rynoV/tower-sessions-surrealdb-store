@@ -12,6 +12,7 @@ repository = "https://github.com/rynoV/tower-sessions-surrealdb-store"
 documentation = "https://docs.rs/tower-sessions-surrealdb-store"
 readme = "README.md"
 resolver = "2"
+rust-version = "1.86.0"
 
 [dependencies]
 async-trait = "0.1.79"
