@@ -29,7 +29,7 @@ surrealdb-nightly = ["dep:surrealdb-nightly"]
 
 [dev-dependencies]
 axum = "0.8.1"
-axum-core = "0.5.0"
+axum-core = "0.5.2"
 serde_json = "1.0.108"
 surrealdb = { version = "^2.0.0", features = ["kv-mem"] }
 tokio = "1.35.1"
