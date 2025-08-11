@@ -3,5 +3,15 @@ version: 2
 updates:
   - package-ecosystem: "cargo"
     directory: "/"
+    # increase-if-necessary is not supported https://github.com/dependabot/dependabot-core/issues/4009
+    # So I'll probably end up needing to just revert dependabot's cargo.toml changes in some cases
+    versioning-strategy: widen
     schedule:
       interval: "weekly"
+    groups:
+      all:
+        patterns:
+          - "*"
+    allow:
+      - dependency-name: "*"
+        dependency-type: ["direct"]
