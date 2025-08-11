@@ -19,7 +19,7 @@ async-trait = "0.1.75"
 rmp-serde = "1.1.2"
 serde = "1.0.194"
 surrealdb = { version = "1.5.0", optional = true }
-surrealdb-nightly = { version = ">=1, <2", optional = true }
+surrealdb-nightly = { version = ">=1.5.20240510, <2", optional = true }
 tower-sessions-core = { version = "0.14.0", features = ["deletion-task"] }
 tracing = "0.1.40"
 
