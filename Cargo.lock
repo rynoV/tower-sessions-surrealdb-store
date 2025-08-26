@@ -293,9 +293,9 @@ checksum = "8b75356056920673b02621b35afd0f7dda9306d03c79a30f5c56c44cf256e3de"
 
 [[package]]
 name = "async-trait"
-version = "0.1.88"
+version = "0.1.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e539d3fca749fcee5236ab05e93a52867dd549cc157c8cb7f99595f3cedffdb5"
+checksum = "9035ad2d096bed7955a320ee7e2230574d28fd3c3a0f186cbea1ff3c7eed5dbb"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -554,6 +554,12 @@ dependencies = [
  "byteorder",
  "cipher",
 ]
+
+[[package]]
+name = "bnum"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f781dba93de3a5ef6dc5b17c9958b208f6f3f021623b360fb605ea51ce443f10"
 
 [[package]]
 name = "borsh"
@@ -1094,6 +1100,16 @@ checksum = "8be9f3dfaaffdae2972880079a491a1a8bb7cbed0b8dd7a347f668b4150a3b93"
 dependencies = [
  "event-listener",
  "pin-project-lite",
+]
+
+[[package]]
+name = "fastnum"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aaa0b51af582b2c8bb5db89abf8a8d73a98b7e9561a7f25ec93f3b0ea25ef2db"
+dependencies = [
+ "autocfg",
+ "bnum",
 ]
 
 [[package]]
@@ -3337,9 +3353,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.142"
+version = "1.0.143"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "030fedb782600dcbd6f02d479bf0d817ac3bb40d644745b769d6a96bc3afc5a7"
+checksum = "d401abef1d108fbd9cbaebc3e46611f4b1021f714a0597a71f41ee463f5f4a5a"
 dependencies = [
  "indexmap 2.10.0",
  "itoa",
@@ -3747,9 +3763,9 @@ dependencies = [
 
 [[package]]
 name = "surrealdb-core-nightly"
-version = "3.0.20250808141239"
+version = "3.0.20250822172951"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "747d2955086e216993634cec33392df46c2ca18c1c226cdd90ca9d09a32537ae"
+checksum = "cacf7af01506b1d0436c44599909087074b8a0fae6ee89917c34229c634af72f"
 dependencies = [
  "addr",
  "ahash 0.8.12",
@@ -3770,6 +3786,7 @@ dependencies = [
  "dashmap 6.1.0",
  "deunicode",
  "dmp",
+ "fastnum",
  "flatbuffers",
  "fst",
  "futures",
@@ -3835,9 +3852,9 @@ dependencies = [
 
 [[package]]
 name = "surrealdb-nightly"
-version = "3.0.20250808141239"
+version = "3.0.20250822172951"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6fcf47632644478de14d4a45cfa1de99bd983d2cb50df36d268b8dfe93d189d3"
+checksum = "41f16ef6dd91c7e7b23d5f777aa41244f917f4611190709d2ca779022c326df1"
 dependencies = [
  "anyhow",
  "arrayvec",
@@ -3879,9 +3896,9 @@ dependencies = [
 
 [[package]]
 name = "surrealdb-protocol"
-version = "0.2.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37827e7976caa8071614d59cdecc758c6a5820974bc31a75185001a8161a08ce"
+checksum = "8219a53e8a4948025993f9ecd29397dc643f87057b334d0dd134eb2623e4d8bf"
 dependencies = [
  "anyhow",
  "async-trait",
