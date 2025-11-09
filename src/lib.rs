@@ -1,6 +1,5 @@
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
-use surrealdb::Surreal;
+use surrealdb::{types::SurrealValue, Surreal};
 use tower_sessions_core::{
     session::{Id, Record},
     session_store::{Error, Result},
@@ -12,7 +11,7 @@ use tracing::info;
 compile_error! {"Features 'surrealdb' and 'surrealdb-nightly' must not be enabled at the same time! See the README for details."}
 
 /// Representation of a session in the database.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(SurrealValue, Debug, PartialEq)]
 struct SessionRecord {
     data: Vec<u8>,
     expiry_date: i64,
@@ -101,7 +100,7 @@ impl<DB: std::fmt::Debug + surrealdb::Connection> SessionStore for SurrealSessio
         let record: Option<SessionRecord> = self
             .client
             .query(
-                "select expiry_date, data from type::thing($table, $id)
+                "select expiry_date, data from type::record($table, $id)
 where expiry_date > time::unix(time::now())",
             )
             .bind(("id", session_id.to_string()))
@@ -115,7 +114,7 @@ where expiry_date > time::unix(time::now())",
 
     async fn delete(&self, session_id: &Id) -> Result<()> {
         self.client
-            .delete::<Option<SessionRecord>>((&self.session_table, &session_id.to_string()))
+            .delete::<Option<SessionRecord>>((&self.session_table, session_id.to_string()))
             .await
             .map_err(|e| Error::Backend(e.to_string()))?;
 
@@ -354,7 +353,7 @@ mod test {
 
     fn assert_serialized_eq<T>(v1: T, v2: T, msg: &str)
     where
-        T: Serialize,
+        T: serde::Serialize,
     {
         assert_eq!(
             serde_json::to_value(v1).expect("Serialization of v1 failed"),
