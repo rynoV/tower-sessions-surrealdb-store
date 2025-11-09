@@ -26,3 +26,14 @@ check *args:
 check-minimal: (check "minimal-versions" "--direct")
 
 ci: check-minimal test-all-minimal check test-all
+
+fix:
+    cargo clippy --fix --profile test --features surrealdb,surrealdb/kv-mem --allow-dirty --allow-staged --allow-no-vcs
+
+format:
+    cargo fmt
+
+fix-and-fmt:
+    just fix
+    just format
+
