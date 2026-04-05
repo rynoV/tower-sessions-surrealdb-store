@@ -13,8 +13,8 @@ This package is in beta. It has automated tests for the basic functionality, but
 - **Compact encoding**: session data is stored in
   the database using [MessagePack](https://crates.io/crates/rmp-serde),
   a compact self-describing serialization format.
-- **Automatic table setup**: only provide a database connection and a table name;
-  the table will be created if it does not exist.
+- **Simple setup**: only provide a database connection and a table name. The table needs to be defined with 
+  `DEFINE TABLE`.
 
 ## Using `surrealdb-nightly`
 
