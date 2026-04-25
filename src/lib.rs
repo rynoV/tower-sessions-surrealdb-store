@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use std::sync::Arc;
 use surrealdb::{types::SurrealValue, Surreal};
 use tower_sessions_core::{
     session::{Id, Record},
@@ -35,7 +36,7 @@ impl SessionRecord {
 /// A SurrealDB session store.
 #[derive(Debug, Clone)]
 pub struct SurrealSessionStore<DB: std::fmt::Debug + surrealdb::Connection> {
-    client: Surreal<DB>,
+    client: Arc<Surreal<DB>>,
     session_table: String,
 }
 
@@ -43,9 +44,14 @@ impl<DB: std::fmt::Debug + surrealdb::Connection> SurrealSessionStore<DB> {
     /// Create a new SurrealDB session store with the provided client,
     /// storing sessions in the given table. Note that the table must
     /// be defined ahead of time if strict mode is enabled.
-    pub fn new(client: Surreal<DB>, session_table: String) -> Self {
+    ///
+    /// The client may be either an owned [`Surreal`] instance or an
+    /// [`Arc<Surreal<_>>`](Arc). Passing an `Arc` lets application code and the
+    /// session store share the same SurrealDB client, so re-authentication on
+    /// that client is visible to store operations.
+    pub fn new(client: impl Into<Arc<Surreal<DB>>>, session_table: String) -> Self {
         Self {
-            client,
+            client: client.into(),
             session_table,
         }
     }
@@ -124,7 +130,7 @@ where expiry_date > time::unix(time::now())",
 
 #[cfg(test)]
 mod test {
-    use std::collections::HashMap;
+    use std::{collections::HashMap, sync::Arc};
 
     use tower_sessions::cookie::time::{Duration, OffsetDateTime};
 
@@ -155,6 +161,24 @@ mod test {
         save_session(&store, &record).await;
         let loaded = load_session(&store, &record).await.expect("Value missing");
         assert_eq!(record, loaded, "Loaded value should equal original");
+    }
+
+    #[tokio::test]
+    async fn accepts_shared_surreal_client() {
+        let db = Arc::new(new_db_connection().await);
+        let store = SurrealSessionStore::new(db.clone(), SESSIONS_TABLE.to_string());
+        let record = make_record(None, [("key", "value")].to_vec(), Duration::days(1));
+
+        save_session(&store, &record).await;
+
+        let stored = select_session(&db, &record)
+            .await
+            .expect("Session should be visible through shared client");
+        let expected = make_session_record(&record).await;
+        assert_eq!(
+            expected, stored,
+            "Shared Surreal client should see saved session"
+        );
     }
 
     #[tokio::test]

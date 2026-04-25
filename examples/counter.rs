@@ -3,7 +3,7 @@
 //! second cookie lifetime. Go to the URL shown in the console in your
 //! browser, the counter should increment on each page load, and after
 //! 10 seconds of inactivity the counter should reset.
-use std::net::SocketAddr;
+use std::{net::SocketAddr, sync::Arc};
 
 use axum::{response::IntoResponse, routing::get, Router};
 use serde::{Deserialize, Serialize};
@@ -29,6 +29,7 @@ async fn main() {
     db.use_db("testing")
         .await
         .expect("Surreal database initialization failure");
+    let db = Arc::new(db);
 
     // This sets up the store to use the `sessions` table.
     let session_store = SurrealSessionStore::new(db.clone(), "sessions".to_string());
