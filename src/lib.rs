@@ -141,10 +141,10 @@ mod test {
         db.use_db("testing")
             .await
             .expect("Surreal database initialization failure");
-               db.query("DEFINE table $table")
-                    .bind(("table", SESSIONS_TABLE))
-                    .await
-                    .expect("Failed to define table");
+        db.query("DEFINE table $table")
+            .bind(("table", SESSIONS_TABLE))
+            .await
+            .expect("Failed to define table");
 
         db
     }
