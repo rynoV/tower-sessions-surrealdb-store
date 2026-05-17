@@ -6,11 +6,11 @@ install:
     cargo +stable install cargo-hack --locked
     cargo +stable install cargo-minimal-versions --locked
 
-test surreal *args:
-    cargo {{args}} test --no-default-features --features {{surreal}},{{surreal}}/kv-mem
+test *args:
+    cargo {{args}} test
 
-test-stable: (test "surrealdb")
-test-stable-minimal: (test "surrealdb" "minimal-versions" "--direct")
+test-stable: (test)
+test-stable-minimal: (test "minimal-versions" "--direct")
 
 test-all: test-stable
 test-all-minimal: test-stable-minimal
@@ -26,7 +26,7 @@ check-minimal: (check "minimal-versions" "--direct")
 ci: check-minimal test-all-minimal check test-all
 
 fix:
-    cargo clippy --fix --profile test --features surrealdb/kv-mem --allow-dirty --allow-staged --allow-no-vcs
+    cargo clippy --fix --profile test --allow-dirty --allow-staged --allow-no-vcs
 
 format:
     cargo fmt
