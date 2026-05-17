@@ -12,14 +12,14 @@ repository = "https://github.com/rynoV/tower-sessions-surrealdb-store"
 documentation = "https://docs.rs/tower-sessions-surrealdb-store"
 readme = "README.md"
 resolver = "2"
-rust-version = "1.89.0"
+rust-version = "1.90.0"
 
 [dependencies]
-async-trait = "0.1.79"
+async-trait = "0.1.89"
 rmp-serde = "1.0.0"
 surrealdb = { version = "3.0.0" }
 tower-sessions-core = { version = "0.14.0", features = ["deletion-task"] }
-tracing = "0.1.40"
+tracing = "0.1.44"
 
 [dev-dependencies]
 axum = "0.8.4"
