@@ -17,8 +17,7 @@ rust-version = "1.86.0"
 [dependencies]
 async-trait = "0.1.79"
 rmp-serde = "1.0.0"
-surrealdb-types = { version = "3.0.0-alpha" }
-surrealdb = { version = "3.0.0-alpha" }
+surrealdb = { version = "3.0.0" }
 tower-sessions-core = { version = "0.14.0", features = ["deletion-task"] }
 tracing = "0.1.40"
 
@@ -31,7 +30,7 @@ tokio = "1.44.2"
 tokio-test = "0.4.4"
 tower = "0.5.2"
 tower-sessions = "0.14.0"
-surrealdb = { version = "3.0.0-alpha", features = ["kv-mem"] }
+surrealdb = { version = "3.0.0", features = ["kv-mem"] }
 
 [[example]]
 name = "counter"
