@@ -32,6 +32,10 @@ to share instances in this way. For example, if authentication is done using sho
 to have code outside the session store refresh the token, something that is not supported when passing
 ownership of the `Surreal<DB>` instance to the session store.
 
+### `surrealdb-nightly` feature
+
+This was removed in version 0.8 with the update to SurrealDB V3, since the `surrealdb-nightly` package is no longer updated.
+
 ## Minimum Supported Rust Version (MSRV)
 
 The MSRV is listed in the `Cargo.toml`. It is decided based on the MSRVs of this crate's dependencies.
