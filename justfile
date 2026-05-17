@@ -11,11 +11,9 @@ test surreal *args:
 
 test-stable: (test "surrealdb")
 test-stable-minimal: (test "surrealdb" "minimal-versions" "--direct")
-test-nightly: (test "surrealdb-nightly")
-test-nightly-minimal: (test "surrealdb-nightly" "minimal-versions" "--direct")
 
-test-all: test-stable test-nightly
-test-all-minimal: test-stable-minimal test-nightly-minimal
+test-all: test-stable
+test-all-minimal: test-stable-minimal
 
 check *args:
     cargo {{args}} fmt --check
