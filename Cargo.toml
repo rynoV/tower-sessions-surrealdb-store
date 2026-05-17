@@ -17,14 +17,10 @@ rust-version = "1.86.0"
 [dependencies]
 async-trait = "0.1.79"
 rmp-serde = "1.0.0"
-surrealdb = { version = "3.0.0-alpha", optional = true }
-surrealdb-types = { version = "3.0.0-alpha", optional = true }
+surrealdb-types = { version = "3.0.0-alpha" }
+surrealdb = { version = "3.0.0-alpha" }
 tower-sessions-core = { version = "0.14.0", features = ["deletion-task"] }
 tracing = "0.1.40"
-
-[features]
-default = ["surrealdb"]
-surrealdb = ["dep:surrealdb", "dep:surrealdb-types"]
 
 [dev-dependencies]
 axum = "0.8.4"
