@@ -168,7 +168,7 @@ mod test {
     #[tokio::test]
     async fn accepts_shared_surreal_client() {
         let db = Arc::new(new_db_connection().await);
-        let store = SurrealSessionStore::new(db.clone(), SESSIONS_TABLE.to_string());
+        let store = SurrealSessionStore::new(Arc::clone(&db), SESSIONS_TABLE.to_string());
         let record = make_record(None, [("key", "value")].to_vec(), Duration::days(1));
 
         save_session(&store, &record).await;
