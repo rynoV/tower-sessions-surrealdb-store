@@ -4237,7 +4237,7 @@ dependencies = [
 
 [[package]]
 name = "tower-sessions-surrealdb-store"
-version = "0.7.0"
+version = "0.8.0-surrealv2"
 dependencies = [
  "async-trait",
  "axum",
