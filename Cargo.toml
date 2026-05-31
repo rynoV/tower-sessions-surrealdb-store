@@ -12,12 +12,12 @@ repository = "https://github.com/rynoV/tower-sessions-surrealdb-store"
 documentation = "https://docs.rs/tower-sessions-surrealdb-store"
 readme = "README.md"
 resolver = "2"
-rust-version = "1.90.0"
+rust-version = "1.92.0"
 
 [dependencies]
 async-trait = "0.1.89"
 rmp-serde = "1.0.0"
-surrealdb = { version = "3.0.0" }
+surrealdb = { version = "3.1" }
 tower-sessions-core = { version = "0.14.0", features = ["deletion-task"] }
 tracing = "0.1.44"
 
@@ -30,7 +30,7 @@ tokio = "1.44.2"
 tokio-test = "0.4.4"
 tower = "0.5.2"
 tower-sessions = "0.14.0"
-surrealdb = { version = "3.0.0", features = ["kv-mem"] }
+surrealdb = { version = "3.1", features = ["kv-mem"] }
 
 [[example]]
 name = "counter"
