@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use std::sync::Arc;
+use surrealdb::types::Bytes;
 use surrealdb::{types::SurrealValue, Surreal};
 use tower_sessions_core::{
     session::{Id, Record},
@@ -11,14 +12,17 @@ use tracing::info;
 /// Representation of a session in the database.
 #[derive(SurrealValue, Debug, PartialEq)]
 struct SessionRecord {
-    data: Vec<u8>,
+    data: Bytes,
     expiry_date: i64,
 }
 
 impl SessionRecord {
     fn from_session(session: &Record) -> Result<Self> {
+        let data = rmp_serde::to_vec(&session)
+            .map_err(|e| Error::Decode(e.to_string()))?
+            .into();
         Ok(SessionRecord {
-            data: rmp_serde::to_vec(session).map_err(|e| Error::Decode(e.to_string()))?,
+            data,
             expiry_date: session.expiry_date.unix_timestamp(),
         })
     }
