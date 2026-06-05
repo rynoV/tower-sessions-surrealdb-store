@@ -160,6 +160,32 @@ mod test {
     }
 
     #[tokio::test]
+    async fn schema() {
+        let db = new_db_connection().await;
+        let store = SurrealSessionStore::new(db.clone(), SESSIONS_TABLE.to_string());
+        let record = make_record(None, [("key", "value")].to_vec(), Duration::days(1));
+        save_session(&store, &record).await;
+        let type_of_data: Option<String> = db
+            .query("select value type::of(data) from only type::record($table, $id)")
+            .bind(("id", record.id.to_string()))
+            .bind(("table", SESSIONS_TABLE))
+            .await
+            .expect("Failed to get type")
+            .take(0)
+            .expect("Failed to get result");
+        assert_eq!(type_of_data, Some("bytes".to_string()));
+        let type_of_expiry_date: Option<String> = db
+            .query("select value type::of(expiry_date) from only type::record($table, $id)")
+            .bind(("id", record.id.to_string()))
+            .bind(("table", SESSIONS_TABLE))
+            .await
+            .expect("Failed to get expiry_date")
+            .take(0)
+            .expect("Failed to get result");
+        assert_eq!(type_of_expiry_date, Some("int".to_string()));
+    }
+
+    #[tokio::test]
     async fn basic_roundtrip() {
         let db = new_db_connection().await;
         let store = SurrealSessionStore::new(db.clone(), SESSIONS_TABLE.to_string());
