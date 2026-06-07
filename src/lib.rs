@@ -151,7 +151,7 @@ mod test {
         db.use_db("testing")
             .await
             .expect("Surreal database initialization failure");
-        db.query("DEFINE table $table")
+        db.query("DEFINE TABLE $table SCHEMAFULL; DEFINE FIELD data ON TABLE $table TYPE bytes; DEFINE FIELD expiry_date ON TABLE $table TYPE int;")
             .bind(("table", SESSIONS_TABLE))
             .await
             .expect("Failed to define table");
